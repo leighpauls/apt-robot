@@ -27,7 +27,7 @@ void ScanHolder::assignPoints(rplidar_response_measurement_node_t *nodes,
     auto node = nodes[i];
     float angle =
         (node.angle_q6_checkbit >> RPLIDAR_RESP_MEASUREMENT_ANGLE_SHIFT) / 64.f;
-    auto dist = node.distance_q2 / 4.0f;
+    auto dist = node.distance_q2 / 4000.0f;
 
     _scan_points[i] = ScanPoint(angle, dist);
   }
