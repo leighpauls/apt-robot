@@ -1,7 +1,6 @@
 
-from lidar_display import scan_contour
+from lidar_display import scan_contour, lidarpy
 
-import lidarpy
 import math
 
 class FetchLidarError(Exception):

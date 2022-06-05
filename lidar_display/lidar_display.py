@@ -1,16 +1,9 @@
-import sys
-import os.path
-
-sys.path.append(os.path.join(os.path.dirname(__file__), '../out'))
-
 import pygame
 import time
 import math
 from typing import List, NamedTuple, Tuple
 
-import lidarpy
-
-from lidar_display import lidar_reader
+from lidar_display import lidar_reader, lidarpy
 
 WHITE = (255, 255, 255)
 RED = (255,0,0)
