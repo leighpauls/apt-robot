@@ -6,6 +6,9 @@ class ContourPoint(NamedTuple):
     y: float
     distance: float
 
+def distance(p1: ContourPoint, p2: ContourPoint) -> float:
+    return _distance(p1.x, p1.y, p2.x, p2.y)
+
 class ScanContourLoop:
     points: List[ContourPoint]
 
@@ -28,7 +31,7 @@ class ScanContourLoop:
             return 0
         first = self.points[0]
         last = self.points[-1]
-        return last.distance + _distance(first.x, first.y, last.x, last.y)
+        return last.distance + distance(first, last)
 
     def find_point_on_curve(self, distance: float) -> ContourPoint:
         if len(self.points) < 2:
