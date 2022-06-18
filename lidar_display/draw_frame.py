@@ -14,6 +14,12 @@ GREEN = (0,255,0)
 BLUE = (0,0,255)
 GREY = (100, 100, 100)
 
+C1 = (0, 0, 0)
+C2 = (25, 25, 25)
+C3 = (50, 50, 50)
+C4 = (75, 75, 75)
+
+
 center = (400, 300)
 pixels_per_meter = 300.0 / 5
 unknown_length = 16 * pixels_per_meter
@@ -28,12 +34,21 @@ def draw_frame(screen, sc: scan_contour.ScanContourLoop) -> None:
     pygame.draw.circle(screen, RED, center, pixels_per_meter * 4, 1)
     pygame.draw.circle(screen, RED, center, pixels_per_meter * 5, 1)
 
+    # draw the raw contour
     draw_sc(screen, sc, BLUE)
 
-    smoothing_scale = 1.0
+    smoothing_scales = [(0.25, C1), (0.5, C2), (1.0, C3), (2.0, C4)]
+    for s, c in smoothing_scales:
+        draw_smoothed_sc(screen, sc, s, c)
 
+
+def draw_smoothed_sc(
+        screen,
+        sc: scan_contour.ScanContourLoop,
+        smoothing_scale: float,
+        color: Tuple) -> None:
     smoothed_sc = smooth(sc, smoothing_scale)
-    draw_sc(screen, smoothed_sc, RED)
+    draw_sc(screen, smoothed_sc, color)
 
     damping_values = []
     for i in range(len(sc.points)):
@@ -49,11 +64,16 @@ def draw_frame(screen, sc: scan_contour.ScanContourLoop) -> None:
         damping_value = 2 * d / smoothing_scale * numpy.exp(-2 * d / smoothing_scale)
         damping_values.append(damping_value)
 
-    for i in range(1, len(damping_values)-1):
+    for i in range(1, len(damping_values)-2):
         cur = damping_values[i]
-        if cur > 0.3 and cur > damping_values[i-1] and cur > damping_values[i+1]:
+        if cur > max(
+                0.2,
+                damping_values[i-2],
+                damping_values[i-1],
+                damping_values[i+1],
+                damping_values[i+2]):
             p1 = sc.points[i]
-            pygame.draw.circle(screen, PINK, _space_to_pixels(p1.x, p1.y), 5)
+            pygame.draw.circle(screen, color, _space_to_pixels(p1.x, p1.y), 5)
 
 
 def draw_sc(screen, sc: scan_contour.ScanContourLoop, color: Tuple[int, int, int]) -> None:
