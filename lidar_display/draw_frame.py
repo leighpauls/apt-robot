@@ -2,7 +2,7 @@
 import pygame
 import numpy
 
-from typing import Tuple
+from typing import Tuple, List
 from scipy import stats
 
 from lidar_display import scan_contour
@@ -13,11 +13,13 @@ PINK = (255,0,255)
 GREEN = (0,255,0)
 BLUE = (0,0,255)
 GREY = (100, 100, 100)
+BLACK = (0, 0, 0)
 
 C1 = (0, 0, 0)
 C2 = (25, 25, 25)
 C3 = (50, 50, 50)
 C4 = (75, 75, 75)
+C5 = (100, 100, 100)
 
 
 center = (400, 300)
@@ -37,33 +39,36 @@ def draw_frame(screen, sc: scan_contour.ScanContourLoop) -> None:
     # draw the raw contour
     draw_sc(screen, sc, BLUE)
 
-    smoothing_scales = [(0.25, C1), (0.5, C2), (1.0, C3), (2.0, C4)]
+    sorted_landmarks = get_landmarks(sc)
+    for l, w in sorted_landmarks[:20]:
+        pygame.draw.circle(screen, BLACK, _space_to_pixels(l.x, l.y), 5)
+
+
+def get_landmarks(sc: scan_contour.ScanContourLoop) -> List[Tuple[scan_contour.ContourPoint, float]]:
+    smoothing_scales = [(0.25, C1), (0.5, C2), (1.0, C3), (2.0, C4), (4.0, C5)]
+    landmarks = []
     for s, c in smoothing_scales:
-        draw_smoothed_sc(screen, sc, s, c)
+        landmarks += find_landmarks_for_smoothing_level(sc, s, c)
+    sorted_landmarks = sorted(landmarks, key=lambda l: l[1], reverse=True)
+    return sorted_landmarks
 
 
-def draw_smoothed_sc(
-        screen,
+def find_landmarks_for_smoothing_level(
         sc: scan_contour.ScanContourLoop,
         smoothing_scale: float,
-        color: Tuple) -> None:
+        color: Tuple) -> List[Tuple[scan_contour.ContourPoint, float]]:
     smoothed_sc = smooth(sc, smoothing_scale)
-    draw_sc(screen, smoothed_sc, color)
 
     damping_values = []
     for i in range(len(sc.points)):
         p1 = sc.points[i]
         p2 = smoothed_sc.points[i]
-        pygame.draw.aaline(
-            screen,
-            GREY,
-            _space_to_pixels(p1.x, p1.y),
-            _space_to_pixels(p2.x, p2.y))
 
         d = scan_contour.distance(p1, p2)
         damping_value = 2 * d / smoothing_scale * numpy.exp(-2 * d / smoothing_scale)
         damping_values.append(damping_value)
 
+    landmarks = []
     for i in range(1, len(damping_values)-2):
         cur = damping_values[i]
         if cur > max(
@@ -73,7 +78,8 @@ def draw_smoothed_sc(
                 damping_values[i+1],
                 damping_values[i+2]):
             p1 = sc.points[i]
-            pygame.draw.circle(screen, color, _space_to_pixels(p1.x, p1.y), 5)
+            landmarks.append((p1, cur))
+    return landmarks
 
 
 def draw_sc(screen, sc: scan_contour.ScanContourLoop, color: Tuple[int, int, int]) -> None:
