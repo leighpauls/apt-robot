@@ -4,7 +4,7 @@ import pickle
 import time
 import pygame
 
-from lidar_display import scan_contour, draw_frame
+from lidar_display import scan_contour, draw_frame, landmarks
 
 def main():
     pygame.init()
@@ -12,7 +12,7 @@ def main():
 
     scan_dir = os.path.join(os.path.dirname(__file__), 'scans')
 
-    landmarks = []
+    landmark_list = []
     for i in range(20):
 
         for e in pygame.event.get():
@@ -24,13 +24,13 @@ def main():
         with open(os.path.join(scan_dir, f'scan_{i}.pickle'), 'rb') as f:
             sc = pickle.load(f)
 
-        landmarks.append(draw_frame.get_landmarks(sc))
+        landmark_list.append(landmarks.get_landmarks(sc))
 
         draw_frame.draw_frame(screen, sc)
 
-        for j in range(len(landmarks)):
+        for j in range(len(landmark_list)):
             c = j * 10
-            for l, w in landmarks[j]:
+            for l, w in landmark_list[j]:
                 pygame.draw.circle(screen, (c, c, c), draw_frame._space_to_pixels(l.x, l.y), 5)
 
         pygame.display.update()
