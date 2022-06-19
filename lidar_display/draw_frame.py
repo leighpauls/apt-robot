@@ -27,13 +27,7 @@ unknown_length = 16 * pixels_per_meter
 
 
 def draw_frame(screen, sc: scan_contour.ScanContourLoop) -> None:
-    screen.fill(WHITE)
-
-    pygame.draw.circle(screen, RED, center, pixels_per_meter, 1)
-    pygame.draw.circle(screen, RED, center, pixels_per_meter * 2, 1)
-    pygame.draw.circle(screen, RED, center, pixels_per_meter * 3, 1)
-    pygame.draw.circle(screen, RED, center, pixels_per_meter * 4, 1)
-    pygame.draw.circle(screen, RED, center, pixels_per_meter * 5, 1)
+    draw_background(screen)
 
     # draw the raw contour
     draw_sc(screen, sc, BLUE)
@@ -41,6 +35,15 @@ def draw_frame(screen, sc: scan_contour.ScanContourLoop) -> None:
     sorted_landmarks = landmarks.get_landmarks(sc)
     for l, w in sorted_landmarks[:20]:
         pygame.draw.circle(screen, BLACK, _space_to_pixels(l.x, l.y), 5)
+
+def draw_background(screen) -> None:
+    screen.fill(WHITE)
+
+    pygame.draw.circle(screen, RED, center, pixels_per_meter, 1)
+    pygame.draw.circle(screen, RED, center, pixels_per_meter * 2, 1)
+    pygame.draw.circle(screen, RED, center, pixels_per_meter * 3, 1)
+    pygame.draw.circle(screen, RED, center, pixels_per_meter * 4, 1)
+    pygame.draw.circle(screen, RED, center, pixels_per_meter * 5, 1)
 
 
 
