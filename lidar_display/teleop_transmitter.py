@@ -10,14 +10,6 @@ def main() -> None:
     port_options = [p.device for p in list_ports.comports()]
     print(port_options)
 
-    with serial.Serial(sys.argv[1], 9600, timeout=0) as ser:
-        print(f'initial read from serial: {ser.read(100)}')
-        for i in range(10):
-            ser.write(b'hello serial')
-            print(f'second read from serial: {ser.read(100)}')
-            time.sleep(1.0)
-
-
     pygame.init()
     pygame.joystick.init()
 
@@ -27,7 +19,7 @@ def main() -> None:
         print('No joysticks found, exiting...')
         exit(1)
 
-    js = joystick = pygame.joystick.Joystick(0)
+    joystick = pygame.joystick.Joystick(0)
     joystick.init()
 
     print("Joystick:", joystick.get_instance_id())
@@ -35,21 +27,33 @@ def main() -> None:
     print("guid:", joystick.get_guid())
     print("axis:", joystick.get_numaxes())
 
-    while True:
-        for event in pygame.event.get(): # User did something.
-            if event.type == pygame.QUIT: # If user clicked close.
-                done = True # Flag that we are done so we exit this loop.
-            elif event.type == pygame.JOYBUTTONDOWN:
-                print(f"Joystick button pressed. Inst: {event.instance_id} Button: {event.button}")
-            elif event.type == pygame.JOYBUTTONUP:
-                print(f"Joystick button released. Inst: {event.instance_id} Button: {event.button}")
-            elif event.type == pygame.JOYAXISMOTION:
-                print(f"Joystick axis moved. Inst {event.instance_id} axis: {event.axis} value: {event.value}")
-            elif event.type == pygame.JOYHATMOTION:
-                print(f"Joystick hat moved. Inst {event.instance_id} axis: {event.hat} value: {event.value}")
-            elif event.type == pygame.JOYBALLMOTION:
-                print(f"Joystick ball moved. Inst {event.instance_id} axis: {event.ball} value: {event.rel}")
-        time.sleep(0.1)
+    with serial.Serial(sys.argv[1], 19200, timeout=0) as ser:
+        while True:
+            for event in pygame.event.get(): # User did something.
+                if event.type == pygame.QUIT: # If user clicked close.
+                    done = True # Flag that we are done so we exit this loop.
+                # elif event.type == pygame.JOYBUTTONDOWN:
+                #     print(f"Joystick button pressed. Inst: {event.instance_id} Button: {event.button}")
+                # elif event.type == pygame.JOYBUTTONUP:
+                #     print(f"Joystick button released. Inst: {event.instance_id} Button: {event.button}")
+                # elif event.type == pygame.JOYAXISMOTION:
+                #     print(f"Joystick axis moved. Inst {event.instance_id} axis: {event.axis} value: {event.value}")
+                # elif event.type == pygame.JOYHATMOTION:
+                #     print(f"Joystick hat moved. Inst {event.instance_id} axis: {event.hat} value: {event.value}")
+                # elif event.type == pygame.JOYBALLMOTION:
+                #     print(f"Joystick ball moved. Inst {event.instance_id} axis: {event.ball} value: {event.rel}")
+
+            left = -max(-100, min(100, round(100 * joystick.get_axis(3))))
+            left_dir = '-' if left < 0 else ''
+
+            right = max(-100, min(100, round(100 * joystick.get_axis(1))))
+            right_dir = '-' if right < 0 else ''
+
+            command = bytes(f"CM{left_dir}{abs(left):03d} {right_dir}{abs(right):03d}\n", 'ascii')
+            print(command)
+            ser.write(command)
+
+            time.sleep(0.1)
 
 if __name__ == '__main__':
     main()
