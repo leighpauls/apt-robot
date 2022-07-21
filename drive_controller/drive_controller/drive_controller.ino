@@ -62,6 +62,128 @@ void write_right_motor(int percent) {
 }
 
 
+
+int left_percent = 0;
+int right_percent = 0;
+int loops_since_command = 0;
+
+const int WATCHDOG_CYCLES = 25;
+
+const int COMMAND_BUFFER_LEN = 32;
+int command_buffer_index = -1;
+char command_buffer[COMMAND_BUFFER_LEN];
+
+bool parse_command() {
+  char* cur = command_buffer;
+  if (*cur != 'M') {
+    return false;
+  }
+  cur++;
+
+  int left_dir = 1;
+  if (*cur == '-') {
+    left_dir = -1;
+    cur++;
+  }
+  int left_abs = 0;
+  for (int i = 0; i < 3; i++) {
+    if (*cur < '0' || *cur > '9') {
+      return false;
+    }
+    int new_digit = (int)(*cur) - (int)('0');
+    left_abs = 10*left_abs + new_digit;
+    cur++;
+  }
+  if (*cur != ' ') {
+    return false;
+  }
+  cur++;
+  
+  int right_dir = 1;
+  if (*cur == '-') {
+    right_dir = -1;
+    cur++;
+  }
+  int right_abs = 0;
+  for (int i = 0; i < 3; i++) {
+    if (*cur < '0' || *cur > '9') {
+      return false;
+    }
+    int new_digit = (int)(*cur) - (int)('0');
+    right_abs = 10*right_abs + new_digit;
+    cur++;
+  }
+
+  if (*cur != '\0') {
+    return false;
+  }
+  
+  left_percent = left_dir * left_abs;
+  right_percent = right_dir * right_abs;
+  
+  return true;
+}
+
+void consume_commands() {
+  loops_since_command += 1;
+  if (loops_since_command > WATCHDOG_CYCLES) {
+    left_percent = 0;
+    right_percent = 0;
+  }
+  
+  int available_bytes = Serial.available();
+  for (int i = 0; i < available_bytes; i++) {
+    char new_byte = Serial.read();
+    // Do I have no active command?
+    if (command_buffer_index < 0) {
+      // look for the start of a new command
+      if (new_byte == 'C') {
+        // Start the command
+        command_buffer_index = 0;
+        memset(command_buffer, 0, COMMAND_BUFFER_LEN);
+      }
+      continue;
+    }
+    // Is it the end of the command?
+    if (new_byte == '\n' || new_byte == '\r') {
+      /*
+      Serial.print("received command:");
+      Serial.print(command_buffer_index);
+      Serial.write(command_buffer, command_buffer_index);
+      Serial.print('\n');
+      */
+      if (!parse_command()) {
+        Serial.print("Invalid command\n");
+      } else {
+        /*
+        Serial.print("Message accepted\n");
+        Serial.print(left_percent);
+        Serial.print(' ');
+        Serial.print(right_percent);
+        Serial.print('\n');
+        */
+        loops_since_command = 0;
+      }
+      command_buffer_index = -1;
+      
+      continue;
+    }
+
+    // Is the buffer overflowing?
+    if (command_buffer_index >= COMMAND_BUFFER_LEN) {
+      // Drop the message
+      Serial.print("dropped incomplete message\n");
+      command_buffer_index = -1;
+      continue;
+    }
+
+    // Add the byte to the command
+    command_buffer[command_buffer_index] = new_byte;
+    command_buffer_index++;
+  }
+  
+}
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(19200);
@@ -79,14 +201,18 @@ void setup() {
   init_encoders();
 }
 
-void loop() {  
+
+void loop() {
+  Serial.print('E');
   Serial.print(left_ticks);
   Serial.print(' ');
   Serial.print(right_ticks);
   Serial.print('\n');
 
-  write_left_motor(0);
-  write_right_motor(0);
+  consume_commands();
   
-  delay(500);
+  write_left_motor(left_percent);
+  write_right_motor(right_percent);
+  
+  delay(20);
 }
