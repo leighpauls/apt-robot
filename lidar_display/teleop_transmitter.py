@@ -1,7 +1,23 @@
 import pygame
+import serial
 import time
+import sys
+
+from serial.tools import list_ports
 
 def main() -> None:
+
+    port_options = [p.device for p in list_ports.comports()]
+    print(port_options)
+
+    with serial.Serial(sys.argv[1], 9600, timeout=0) as ser:
+        print(f'initial read from serial: {ser.read(100)}')
+        for i in range(10):
+            ser.write(b'hello serial')
+            print(f'second read from serial: {ser.read(100)}')
+            time.sleep(1.0)
+
+
     pygame.init()
     pygame.joystick.init()
 
