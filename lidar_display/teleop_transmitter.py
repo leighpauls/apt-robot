@@ -53,6 +53,11 @@ def main() -> None:
             print(command)
             ser.write(command)
 
+            # Flush the buffer
+            bytes_waiting = ser.in_waiting
+            print(f"{bytes_waiting} bytes waiting")
+            ser.read(bytes_waiting)
+
             time.sleep(0.1)
 
 if __name__ == '__main__':
