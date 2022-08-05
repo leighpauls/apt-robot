@@ -39,8 +39,8 @@ const int DIO_MOTOR_LEFT_B = 9;
 const int DIO_MOTOR_RIGHT_A = 10;
 const int DIO_MOTOR_RIGHT_B = 11;
 
-// Can go up to 1023
-const int MAX_MOTOR_OUTPUT = 200;
+// Can go up to 255
+const int MAX_MOTOR_OUTPUT = 255;
 
 void write_motor(int pina, int pinb, int percent) {
   int out_a = 0;
