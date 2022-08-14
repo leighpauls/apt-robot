@@ -43,10 +43,10 @@ def main() -> None:
                 # elif event.type == pygame.JOYBALLMOTION:
                 #     print(f"Joystick ball moved. Inst {event.instance_id} axis: {event.ball} value: {event.rel}")
 
-            left = -max(-100, min(100, round(100 * joystick.get_axis(3))))
+            left = max(-100, min(100, round(100 * joystick.get_axis(1))))
             left_dir = '-' if left < 0 else ''
 
-            right = max(-100, min(100, round(100 * joystick.get_axis(1))))
+            right = -max(-100, min(100, round(100 * joystick.get_axis(3))))
             right_dir = '-' if right < 0 else ''
 
             command = bytes(f"CM{left_dir}{abs(left):03d} {right_dir}{abs(right):03d}\n", 'ascii')
