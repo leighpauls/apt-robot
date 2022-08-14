@@ -1,6 +1,7 @@
 #ifndef DEBUG_H
 #define DEBUG_H 1
 
+
 #ifdef DEBUG
     #define DEBUGPRINT( X ) \
     Serial.print( __FUNCTION__ ); \

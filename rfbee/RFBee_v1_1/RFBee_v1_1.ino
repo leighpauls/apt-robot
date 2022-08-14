@@ -53,7 +53,7 @@ void setup(){
     }
     setUartBaudRate();
     rfBeeInit();
-    Serial.println("ok");
+    Serial.println("OK");
 }
 
 void loop(){
@@ -73,10 +73,12 @@ void loop(){
   sleepCounter--;
   
   // check if we can go to sleep again, going into low power too early will result in lost data in the CCx fifo.
+  /*
   if ((sleepCounter == 0) && (Config.get(CONFIG_RFBEE_MODE) == LOWPOWER_MODE))
     DEBUGPRINT("low power on")
     lowPowerOn();
     DEBUGPRINT("woke up")
+  */
 }
 
 
