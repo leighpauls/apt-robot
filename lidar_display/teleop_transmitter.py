@@ -19,7 +19,25 @@ def main() -> None:
         print('No joysticks found, exiting...')
         exit(1)
 
-    joystick = pygame.joystick.Joystick(0)
+    joystick = None
+
+    print(f'argv: {sys.argv}')
+    js_pattern = sys.argv[2] if len(sys.argv) >= 3 else None
+
+    print(f'pattern {js_pattern}')
+    for i in range(pygame.joystick.get_count()):
+        j = pygame.joystick.Joystick(i)
+        name = j.get_name()
+        if js_pattern and js_pattern in name:
+            joystick = j
+            print(f'Selected: {name}')
+        else:
+            print(f'Joystick skipped: {name}')
+
+    if joystick is None:
+        print('No joystick selected')
+        exit(1)
+
     joystick.init()
 
     print("Joystick:", joystick.get_instance_id())
@@ -50,12 +68,12 @@ def main() -> None:
             right_dir = '-' if right < 0 else ''
 
             command = bytes(f"CM{left_dir}{abs(left):03d} {right_dir}{abs(right):03d}\n", 'ascii')
-            print(command)
+            # print(command)
             ser.write(command)
 
             # Flush the buffer
             bytes_waiting = ser.in_waiting
-            print(f"{bytes_waiting} bytes waiting")
+            # print(f"{bytes_waiting} bytes waiting")
             ser.read(bytes_waiting)
 
             time.sleep(0.1)
