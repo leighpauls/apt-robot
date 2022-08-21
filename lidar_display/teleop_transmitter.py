@@ -61,13 +61,22 @@ def main() -> None:
                 # elif event.type == pygame.JOYBALLMOTION:
                 #     print(f"Joystick ball moved. Inst {event.instance_id} axis: {event.ball} value: {event.rel}")
 
-            left = max(-100, min(100, round(100 * joystick.get_axis(1))))
+            throttle = _quad_curve(joystick.get_axis(1))
+            turn = _quad_curve(joystick.get_axis(2))
+
+            # left_raw = joystick.get_axis(1)
+            # left = max(-100, min(100, round(100 * _quad_curve(left_raw))))
+            left = max(-100, min(100, round(100 * (-turn + throttle))))
             left_dir = '-' if left < 0 else ''
+            left_str = f"{left_dir}{abs(left):03d}"
 
-            right = -max(-100, min(100, round(100 * joystick.get_axis(3))))
+            # right_raw = joystick.get_axis(3)
+            # right = -max(-100, min(100, round(100 * _quad_curve(right_raw))))
+            right = max(-100, min(100, round(100 * (-turn - throttle))))
             right_dir = '-' if right < 0 else ''
+            right_str = f"{right_dir}{abs(right):03d}"
 
-            command = bytes(f"CM{left_dir}{abs(left):03d} {right_dir}{abs(right):03d}\n", 'ascii')
+            command = bytes(f"CM{left_str} {right_str}\n", 'ascii')
             # print(command)
             ser.write(command)
 
@@ -77,6 +86,9 @@ def main() -> None:
             ser.read(bytes_waiting)
 
             time.sleep(0.1)
+
+def _quad_curve(x: float) -> float:
+    return x * abs(x)
 
 if __name__ == '__main__':
     main()
